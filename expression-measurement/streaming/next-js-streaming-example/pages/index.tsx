@@ -1,43 +1,19 @@
-import {
-  BookOpenText as BookIcon,
-  Ear as EarIcon,
-  Microphone as MicrophoneIcon,
-  SmileySticker as SmileyIcon,
-} from "@phosphor-icons/react";
-
-import Link from "next/link";
+import { FaceWidgets } from "../components/widgets/FaceWidgets";
 
 export default function HomePage() {
   return (
-    <div className="px-6 py-10 pb-20 sm:px-10 md:px-14">
-      <div className="text-center md:text-left">
-        <div className="pb-2 text-4xl font-medium text-neutral-700">Hume AI Sandbox</div>
-        <div className="pt-5">Select a modality to try out Hume's models with your webcam and microphone</div>
+    <div>
+      <div className="pb-2 text-4xl font-medium text-neutral-700">Facial Expression Streaming</div>
+      <div className="text-lg text-neutral-700">
+        Stream webcam frames to Hume and see emotions update in real time. Set
+        <code className="mx-1 rounded bg-neutral-200 px-2 py-1 text-sm">NEXT_PUBLIC_HUME_API_KEY</code>
+        in a <code className="mx-1 rounded bg-neutral-200 px-2 py-1 text-sm">.env.local</code> file so the
+        app can start immediately without any login.
+      </div>
 
-        <div className="md:px-10 pt-12 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ModelSection name="Facial Expression" page="/face" iconClass={SmileyIcon} />
-          <ModelSection name="Speech Prosody" page="/prosody" iconClass={EarIcon} />
-          <ModelSection name="Vocal Burst" page="/burst" iconClass={MicrophoneIcon} />
-          <ModelSection name="Written Language" page="/language" iconClass={BookIcon} />
-        </div>
+      <div className="mt-10">
+        <FaceWidgets />
       </div>
     </div>
-  );
-}
-
-type ModelSectionProps = {
-  iconClass: any;
-  name: string;
-  page: string;
-};
-
-function ModelSection(props: ModelSectionProps) {
-  return (
-    <Link href={props.page}>
-      <div className="hover:border-neutral-400 hover:ease-linear duration-200 flex w-full justify-center items-center rounded-lg border border-neutral-200 bg-white px-14 py-12 shadow">
-        <props.iconClass size={40} />
-        <div className="ml-6 text-xl">{props.name}</div>
-      </div>
-    </Link>
   );
 }
