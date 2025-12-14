@@ -1,8 +1,7 @@
 import { Emotion, EmotionName } from "../../lib/data/emotion";
 import { None, Optional } from "../../lib/utilities/typeUtilities";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { AuthContext } from "../menu/Auth";
 import { Descriptor } from "./Descriptor";
 import { FacePrediction } from "../../lib/data/facePrediction";
 import { FaceTrackedVideo } from "./FaceTrackedVideo";
@@ -11,14 +10,13 @@ import { TopEmotions } from "./TopEmotions";
 import { TrackedFace } from "../../lib/data/trackedFace";
 import { VideoRecorder } from "../../lib/media/videoRecorder";
 import { blobToBase64 } from "../../lib/utilities/blobUtilities";
-import { getApiUrlWs } from "../../lib/utilities/environmentUtilities";
+import { Environment, getApiUrlWs } from "../../lib/utilities/environmentUtilities";
 
 type FaceWidgetsProps = {
   onCalibrate: Optional<(emotions: Emotion[]) => void>;
 };
 
 export function FaceWidgets({ onCalibrate }: FaceWidgetsProps) {
-  const authContext = useContext(AuthContext);
   const socketRef = useRef<WebSocket | null>(null);
   const recorderRef = useRef<VideoRecorder | null>(null);
   const photoRef = useRef<HTMLCanvasElement | null>(null);
@@ -30,6 +28,8 @@ export function FaceWidgets({ onCalibrate }: FaceWidgetsProps) {
   const [status, setStatus] = useState("");
   const numLoaderLevels = 5;
   const maxReconnects = 3;
+  const apiKey = process.env.NEXT_PUBLIC_HUME_API_KEY || "";
+  const environment = Environment.Prod;
   const loaderNames: EmotionName[] = [
     "Calmness",
     "Joy",
@@ -55,13 +55,18 @@ export function FaceWidgets({ onCalibrate }: FaceWidgetsProps) {
   }, []);
 
   function connect() {
+    if (!apiKey) {
+      setStatus("Missing NEXT_PUBLIC_HUME_API_KEY environment variable.");
+      return;
+    }
+
     const socket = socketRef.current;
     if (socket && socket.readyState === WebSocket.OPEN) {
       console.log("Socket already exists, will not create");
     } else {
-      const baseUrl = getApiUrlWs(authContext.environment);
+      const baseUrl = getApiUrlWs(environment);
       const endpointUrl = `${baseUrl}/v0/stream/models`;
-      const socketUrl = `${endpointUrl}?apikey=${authContext.key}`;
+      const socketUrl = `${endpointUrl}?apikey=${apiKey}`;
       console.log(`Connecting to websocket... (using ${endpointUrl})`);
       setStatus(`Connecting to server...`);
 
@@ -137,8 +142,7 @@ export function FaceWidgets({ onCalibrate }: FaceWidgetsProps) {
   async function socketOnError(event: Event) {
     console.error("Socket failed to connect: ", event);
     if (numReconnects.current >= maxReconnects) {
-      setStatus(`Failed to connect to the Hume API (${authContext.environment}).
-      Please log out and verify that your API key is correct.`);
+      setStatus("Failed to connect to the Hume API. Please verify that your API key is correct.");
       stopEverything();
     } else {
       numReconnects.current++;
